@@ -1,0 +1,5 @@
+*.o
+compile_commands.json
+lox
+.cache/
+.clang-format
