@@ -1,5 +1,3 @@
-#!/usr/bin/make -f
-
 SHELL = /bin/sh
 
 .SUFFIXES:
@@ -11,9 +9,9 @@ SHELL = /bin/sh
 # CPPFLAGS += -DDEBUG_LOG_GC
 # CFLAGS += -Og -g
 
-CPPFLAGS += -DNAN_BOXING
+# CPPFLAGS += -DNAN_BOXING
 CFLAGS += -Wall -Wextra -Wpedantic -Wno-unused-parameter
-CFLAGS += -O2
+CFLAGS += -O3
 
 SRCS = chunk.c debug.c vm.c memory.c value.c compiler.c scanner.c object.c table.c
 OBJS = $(SRCS:.c=.o)
@@ -23,6 +21,10 @@ all: lox
 
 lox: $(OBJS)
 
+lox.js: $(OBJS)
+	$(CC) -o $@ $(OBJS) \
+		-sEXPORTED_RUNTIME_METHODS=ccall,cwrap
+
 .PHONY: clean
 clean:
-	rm -f *.o lox
+	rm -f *.o lox lox.wasm lox.js

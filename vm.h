@@ -4,6 +4,12 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#else
+#define EMSCRIPTEN_KEEPALIVE
+#endif
+
 #include "common.h"
 #include "object.h"
 #include "table.h"
@@ -46,15 +52,16 @@ typedef enum
 
 extern vm_t vm;
 
-void
+void EMSCRIPTEN_KEEPALIVE
 vm_init(void);
-void
+void EMSCRIPTEN_KEEPALIVE
 free_vm(void);
 
-interpret_result
+interpret_result EMSCRIPTEN_KEEPALIVE
 interpret(const char *chunk);
 
-void push(value_t);
+void
+push(value_t);
 value_t
 pop(void);
 

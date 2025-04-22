@@ -1,5 +1,7 @@
 *.o
 compile_commands.json
 lox
+lox.js
+lox.wasm
 .cache/
 .clang-format

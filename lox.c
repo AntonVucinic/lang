@@ -68,7 +68,7 @@ main(int argc, const char *argv[])
     else if (argc == 2)
         run_file(argv[1]);
     else {
-        fprintf(stderr, "Usage: clox [path]\n");
+        fprintf(stderr, "Usage: %s [path]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
