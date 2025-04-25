@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playground</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: var(--navbar-bg);
+            color: var(--navbar-text);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        #navbar select, #navbar button {
+            margin-left: 10px;
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        .resizable-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #codeInput {
+            flex: 8;
+            resize: none;
+            height: auto;
+            overflow-y: auto;
+            margin: 0;
+            padding: 10px;
+            border: none;
+            outline: none;
+            background-color: var(--input-bg);
+            color: var(--input-text);
+        }
+
+        #output {
+            flex: 2;
+            overflow-y: auto;
+            margin: 0;
+            padding: 10px;
+            background-color: var(--output-bg);
+            color: var(--output-text);
+            border-top: 1px solid var(--border-color);
+        }
+
+        :root {
+            --navbar-bg: #f4f4f4;
+            --navbar-text: #000;
+            --input-bg: #fff;
+            --input-text: #000;
+            --output-bg: #f4f4f4;
+            --output-text: #000;
+            --border-color: #ccc;
+            --body-bg: #fff;
+            --body-text: #000;
+        }
+
+        [data-theme="dark"] {
+            --navbar-bg: #333;
+            --navbar-text: #fff;
+            --input-bg: #222;
+            --input-text: #fff;
+            --output-bg: #121212;
+            --output-text: #fff;
+            --border-color: #444;
+            --body-bg: #121212;
+            --body-text: #fff;
+        }
+
+        body {
+            background-color: var(--body-bg);
+            color: var(--body-text);
+        }
+    </style>
+</head>
+<body>
+    <div id="navbar">
+        <div>
+            <button id="runButton">Run Code</button>
+            <select id="examplesDropdown">
+                <option value="">Select Example</option>
+                <option value="print &quot;Hello, world!&quot;;">Hello World</option>
+                <option value="for (var i = 0; i &lt; 5; i = i + 1) {&#010;  print i;&#010;}">Simple Loop</option>
+                <option value="fun greet(name) {&#010;  return &quot;Hello, &quot; + name;&#010;}&#010;&#010;print greet(&quot;Alice&quot;);">Function Example</option>
+                <option value="if (true) {&#010;  print &quot;This is true!&quot;;&#010;} else {&#010;  print &quot;This is false!&quot;;&#010;}">If Statement</option>
+                <option value="class Vehicle {&#010;  // constructor&#010;  init(capacity) {&#010;    this.capacity = capacity;&#010;  }&#010;}&#010;&#010;// inheritance&#010;class Car &lt; Vehicle {&#010;  init(model) {&#010;    super.init(5);&#010;    this.model = model;&#010;  }&#010;&#010;  honk() {&#010;    print &quot;Honk honk!&quot;;&#010;  }&#010;}&#010;&#010;class Ship &lt; Vehicle {&#010;  init() {&#010;    super.init(100);&#010;  }&#010;&#010;  sail() {&#010;    print &quot;AAAALL ABOARD&quot;;&#010;  }&#010;}&#010;&#010;var ford = Car(&quot;ford focus&quot;);&#010;ford.honk();&#010;print ford.model + &quot; capacity:&quot;;&#010;print ford.capacity;&#010;&#010;print &quot;&quot;;&#010;&#010;var titanic = Ship();&#010;titanic.sail();&#010;print &quot;titanic capacity:&quot;;&#010;print titanic.capacity;">Classes</option>
+            </select>
+        </div>
+        <button id="themeToggle">Toggle Theme</button>
+    </div>
+
+    <div class="resizable-container">
+        <textarea autocorrect="off" id="codeInput" placeholder="Select an example from the dropdown above or enter your code here..."></textarea>
+        <div id="output"></div>
+    </div>
+
+    <script>
+        const outputDiv = document.getElementById('output');
+        const runButton = document.getElementById('runButton');
+        const examplesDropdown = document.getElementById('examplesDropdown');
+        const themeToggle = document.getElementById('themeToggle');
+        const codeInput = document.getElementById('codeInput');
+        let interpret, vm_init, vm_free;
+
+        const stdout = (text) => {
+            outputDiv.innerText += text + '\n';
+        };
+
+        const stderr = (text) => {
+            outputDiv.innerText += 'Error: ' + text + '\n';
+        };
+
+        var Module = {
+            print: stdout,
+            printErr: stderr,
+            onRuntimeInitialized: () => {
+                try {
+                    vm_init = Module.cwrap('vm_init', null, []);
+                    vm_free = Module.cwrap('free_vm', null, []);
+                    interpret = Module.cwrap('interpret', 'number', ['string']);
+                } catch (error) {
+                    console.error('Failed to initialize the WebAssembly module:', error);
+                    outputDiv.innerText = 'Error initializing the WebAssembly module.';
+                }
+            },
+        };
+
+        runButton.addEventListener('click', () => {
+            vm_init();
+
+            const code = codeInput.value;
+            outputDiv.innerText = '';
+
+            if (!interpret) {
+                outputDiv.innerText = 'Interpreter is not initialized yet.';
+                return;
+            }
+
+            try {
+                const result = interpret(code);
+
+                if (result === 1) {
+                    outputDiv.innerText += '\nCompilation error.';
+                } else if (result === 2) {
+                    outputDiv.innerText += '\nRuntime error.';
+                } else {
+                    outputDiv.innerText += '\nCode executed successfully.';
+                }
+            } catch (error) {
+                console.error('Error during code execution:', error);
+                outputDiv.innerText = 'An error occurred while running the code.';
+            }
+
+            vm_free();
+        });
+
+        examplesDropdown.addEventListener('change', (event) => {
+            const exampleCode = event.target.value;
+            codeInput.value = exampleCode;
+        });
+
+        let isDarkTheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const applyTheme = () => {
+            document.body.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light');
+        };
+        themeToggle.addEventListener('click', () => {
+            isDarkTheme = !isDarkTheme;
+            applyTheme();
+        });
+        applyTheme(); // Apply theme on page load
+    </script>
+    <script src="lox.js"></script>
+</body>
+</html>
