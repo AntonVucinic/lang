@@ -17,7 +17,7 @@ jobs:
 
     # Step 2: Set up Emscripten environment
     - name: Setup Emscripten
-      uses: lovasoa/setup-emscripten@v-1
+      uses: lovasoa/setup-emscripten@v1
       
     # Step 3: Build the lox.js file using emmake
     - name: Build lox.js
