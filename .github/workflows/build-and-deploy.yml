@@ -3,37 +3,42 @@ name: Build and Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main  # Run this workflow when changes are pushed to the main branch
+      - main
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    # Step 1: Checkout the repository
     - name: Checkout Repository
       uses: actions/checkout@v3
 
-    # Step 2: Set up Emscripten environment
     - name: Setup Emscripten
       uses: mymindstorm/setup-emsdk@v14
       
-    # Step 3: Build the lox.js file using emmake
     - name: Build lox.js
       run: |
         emmake make lox.js
 
-    # Step 4: Prepare files for GitHub Pages
     - name: Prepare Deployment
       run: |
         mkdir gh-pages
         cp index.html gh-pages/
         cp lox.js gh-pages/
 
-    # Step 5: Deploy to GitHub Pages
     - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v4
+      uses: actions/upload-pages-artifact@v3.0.1
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: gh-pages
+        path: gh-pages/
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
