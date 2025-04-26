@@ -17,10 +17,8 @@ jobs:
 
     # Step 2: Set up Emscripten environment
     - name: Setup Emscripten
-      uses: trzeci/emscripten@v2.0.28
-      with:
-        version: 3.1.20  # Set the Emscripten version you need (optional)
-
+      uses: lovasoa/setup-emscripten@v-1
+      
     # Step 3: Build the lox.js file using emmake
     - name: Build lox.js
       run: |
