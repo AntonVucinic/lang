@@ -36,6 +36,9 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write
     runs-on: ubuntu-latest
     needs: build
     steps:
